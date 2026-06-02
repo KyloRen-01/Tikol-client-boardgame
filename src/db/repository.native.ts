@@ -16,6 +16,7 @@ export async function savePlayerProfile(player: PlayerProfile) {
       set: {
         name: player.name,
         selectedCharacter: player.selectedCharacter,
+        confirmedCharacter: player.confirmedCharacter,
       },
     });
 }

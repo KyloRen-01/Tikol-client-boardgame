@@ -17,6 +17,7 @@ export interface PlayerProfile {
   id: string;
   name: string;
   selectedCharacter: CharacterId | null;
+  confirmedCharacter: CharacterId | null;
   createdAt: number;
 }
 
