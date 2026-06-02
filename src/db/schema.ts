@@ -5,6 +5,7 @@ export const playerProfiles = sqliteTable("player_profiles", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   selectedCharacter: text("selected_character").$type<CharacterId>(),
+  confirmedCharacter: text("confirmed_character").$type<CharacterId>(),
   createdAt: integer("created_at").notNull(),
 });
 
@@ -21,6 +22,7 @@ CREATE TABLE IF NOT EXISTS player_profiles (
   id TEXT PRIMARY KEY NOT NULL,
   name TEXT NOT NULL,
   selected_character TEXT,
+  confirmed_character TEXT,
   created_at INTEGER NOT NULL
 );
 
