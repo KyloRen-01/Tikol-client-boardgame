@@ -12,6 +12,7 @@ interface PlayerState {
   confirmCharacter: () => CharacterId | null;
   startSession: () => GameSession | null;
   setCurrentTile: (tileId: number) => void;
+  reset: () => void;
 }
 
 export const usePlayerStore = create<PlayerState>((set, get) => ({
@@ -106,4 +107,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         ? { ...state.currentSession, tileId }
         : state.currentSession,
     })),
+  reset: () =>
+    set({
+      player: null,
+      currentSession: null,
+      pendingCharacter: null,
+    }),
 }));

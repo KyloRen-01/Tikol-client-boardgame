@@ -9,7 +9,9 @@ function WebHomeCanvas() {
       <View style={styles.panel}>
         <Text style={styles.title}>TIKOL</Text>
         <View style={styles.ribbon}>
-          <Text style={styles.ribbonText}>Teaching Instructional Kit for Observing Learning</Text>
+          <Text style={styles.ribbonText}>
+            Technology-Integrated Knowledge for Observing Learning
+          </Text>
         </View>
         <View style={styles.badge}>
           <Text style={styles.badgeText}>Particle Model Board Game</Text>

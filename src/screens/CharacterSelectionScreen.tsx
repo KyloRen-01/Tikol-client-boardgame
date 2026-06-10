@@ -1,6 +1,7 @@
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { CharacterIcon } from "../components/character/CharacterIcon";
 import { CHARACTER_OPTIONS } from "../constants/characters";
+import { useGameStore } from "../store/gameStore";
 import { useNavigationStore } from "../store/useNavigationStore";
 import { usePlayerStore } from "../store/usePlayerStore";
 
@@ -17,6 +18,7 @@ export function CharacterSelectionScreen() {
   );
   const confirmCharacter = usePlayerStore((state) => state.confirmCharacter);
   const startSession = usePlayerStore((state) => state.startSession);
+  const initializeSession = useGameStore((state) => state.initializeSession);
   const goNext = useNavigationStore((state) => state.goNext);
   const pendingCharacterOption = CHARACTER_OPTIONS.find(
     (character) => character.id === pendingCharacter,
@@ -77,10 +79,11 @@ export function CharacterSelectionScreen() {
                   </Pressable>
                   <Pressable
                     accessibilityRole="button"
-                    onPress={() => {
+                    onPress={async () => {
                       const character = confirmCharacter();
                       if (character) {
                         startSession();
+                        await initializeSession();
                         goNext();
                       }
                     }}

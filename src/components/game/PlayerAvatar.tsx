@@ -20,12 +20,12 @@ type PlayerAvatarProps = {
   size: number;
 };
 
-const FIGMA_WIDTH = 279.58;
-const FIGMA_HEIGHT = 1080;
+const FIGMA_WIDTH = 281;
+const FIGMA_HEIGHT = 2405;
 const STEP_DURATION_MS = 210;
 
 function getTilePosition(tileIndex: number, scaleX: number, scaleY: number, size: number) {
-  const boardTile = tiles[Math.max(0, Math.min(tileIndex, 50))] ?? tiles[0];
+  const boardTile = tiles[Math.max(0, Math.min(tileIndex, tiles.length - 1))] ?? tiles[0];
 
   return {
     x: boardTile.x * scaleX - size / 2,

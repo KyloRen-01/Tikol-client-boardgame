@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { View } from "react-native";
-import GameBoardFrame from "../assets/game-background/GameBoardFrame.svg";
+import GameBoardFrame from "../assets/game-background/OfficialGameBoardFrame.svg";
 
 type BoardProps = {
   width: number;

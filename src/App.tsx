@@ -5,6 +5,7 @@ import { BackButton } from "./components/BackButton";
 import { useDatabaseLifecycle } from "./db/useDatabaseLifecycle";
 import { HomeScreen } from "./screens/HomeScreen";
 import { NameInputScreen } from "./screens/NameInputScreen";
+import { useGameStore } from "./store/gameStore";
 import { useNavigationStore } from "./store/useNavigationStore";
 
 const CharacterSelectionScreen = lazy(() =>
@@ -22,7 +23,12 @@ const GameBoardScreen = lazy(() =>
 export default function App() {
   const currentScreen = useNavigationStore((state) => state.currentScreen);
   const goTo = useNavigationStore((state) => state.goTo);
+  const hydrateSession = useGameStore((state) => state.hydrateSession);
   useDatabaseLifecycle();
+
+  useEffect(() => {
+    void hydrateSession();
+  }, [hydrateSession]);
 
   useEffect(() => {
     if (typeof window === "undefined") {

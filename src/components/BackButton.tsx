@@ -1,11 +1,25 @@
 import { Pressable, StyleSheet, Text } from "react-native";
+import { useGameStore } from "../store/gameStore";
 import { useNavigationStore } from "../store/useNavigationStore";
 
 export function BackButton() {
+  const currentScreen = useNavigationStore((state) => state.currentScreen);
   const goBack = useNavigationStore((state) => state.goBack);
+  const endSession = useGameStore((state) => state.endSession);
 
   return (
-    <Pressable accessibilityRole="button" onPress={goBack} style={styles.button}>
+    <Pressable
+      accessibilityRole="button"
+      onPress={() => {
+        if (currentScreen === "GAME_BOARD") {
+          void endSession();
+          return;
+        }
+
+        goBack();
+      }}
+      style={styles.button}
+    >
       <Text style={styles.text}>Back</Text>
     </Pressable>
   );
