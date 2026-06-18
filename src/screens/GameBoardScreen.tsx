@@ -1,48 +1,57 @@
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import {
   ScrollView,
-  Pressable,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
 } from "react-native";
 import Board from "../../components/Board";
-import { Dice } from "../components/game/Dice";
+import { AnswerFeedbackModal } from "../components/game/AnswerFeedbackModal";
+import { BottomGameConsole } from "../components/game/BottomGameConsole";
+import { BonusChallengeModal } from "../components/game/BonusChallengeModal";
+import { BonusChallengeTrigger } from "../components/game/BonusChallengeTrigger";
+import { GameAudioEffects } from "../components/game/GameAudioEffects";
+import { GameTopBar } from "../components/game/GameTopBar";
 import { PlayerAvatar } from "../components/game/PlayerAvatar";
 import { QuestionModal } from "../components/game/QuestionModal";
 import { QuestionTrigger } from "../components/game/QuestionTrigger";
-import { QUESTION_TILE_INDEXES, useGameStore } from "../store/gameStore";
+import {
+  BONUS_CHALLENGE_TILE_INDEXES,
+  QUESTION_TILE_INDEXES,
+  useGameStore,
+} from "../store/gameStore";
 import { usePlayerStore } from "../store/usePlayerStore";
 
 const FIGMA_WIDTH = 281;
 const FIGMA_HEIGHT = 2405;
 const ASPECT_RATIO = FIGMA_HEIGHT / FIGMA_WIDTH;
-const ICON_BASE_SIZE = 25;
-const ICON_MIN_SIZE = 20;
+const ICON_BASE_SIZE = 28;
+const ICON_MIN_SIZE = 30;
 const ICON_MAX_SIZE = 120;
-const MOBILE_WIDTH_MAX = 480;
-const MOBILE_ICON_SCALE = 0.2;
+const QUESTION_BADGE_MIN_SIZE = 26;
+const QUESTION_BADGE_SCALE = 0.92;
 
 export function GameBoardScreen() {
+  const boardScrollRef = useRef<ScrollView>(null);
   const { width: screenWidth } = useWindowDimensions();
   const session = usePlayerStore((state) => state.currentSession);
   const player = usePlayerStore((state) => state.player);
-  const diceResult = useGameStore((state) => state.diceResult);
-  const currentTileIndex = useGameStore((state) => state.currentTileIndex);
-  const currentPhase = useGameStore((state) => state.currentPhase);
   const sessionToken = useGameStore((state) => state.sessionToken);
   const initializeSession = useGameStore((state) => state.initializeSession);
-  const movePlayer = useGameStore((state) => state.movePlayer);
+  const feedback = useGameStore((state) => state.feedback);
+  const closeFeedback = useGameStore((state) => state.closeFeedback);
   const boardWidth = screenWidth;
   const boardHeight = boardWidth * ASPECT_RATIO;
   const scaleX = boardWidth / FIGMA_WIDTH;
   const characterId =
     session?.characterId ?? player?.selectedCharacter ?? "Solid";
-  const iconScale = screenWidth <= MOBILE_WIDTH_MAX ? MOBILE_ICON_SCALE : 1;
   const iconSize = Math.max(
     ICON_MIN_SIZE,
-    Math.min(ICON_BASE_SIZE * scaleX * iconScale, ICON_MAX_SIZE),
+    Math.min(ICON_BASE_SIZE * scaleX, ICON_MAX_SIZE),
+  );
+  const questionBadgeSize = Math.max(
+    QUESTION_BADGE_MIN_SIZE,
+    iconSize * QUESTION_BADGE_SCALE,
   );
 
   useEffect(() => {
@@ -51,43 +60,23 @@ export function GameBoardScreen() {
     }
   }, [initializeSession, sessionToken]);
 
+  const scrollToBoardBottom = useCallback(() => {
+    requestAnimationFrame(() => {
+      boardScrollRef.current?.scrollToEnd({ animated: false });
+    });
+  }, []);
+
   return (
     <View style={styles.root}>
-      <View style={styles.controls}>
-        <Dice />
-        <View style={styles.counter}>
-          <Text style={styles.counterText}>
-            {player?.name ?? "Player"} - {characterId} - Tile{" "}
-            {currentTileIndex + 1} - {currentPhase} - Rolled {diceResult}
-          </Text>
-        </View>
-        <View style={styles.tileControls}>
-          <Pressable
-            accessibilityLabel="Move player back one tile"
-            onPress={() => movePlayer(-1)}
-            style={({ pressed }) => [
-              styles.tileControlButton,
-              pressed ? styles.tileControlButtonPressed : null,
-            ]}
-          >
-            <Text style={styles.tileControlText}>Back</Text>
-          </Pressable>
-          <Pressable
-            accessibilityLabel="Move player forward one tile"
-            onPress={() => movePlayer(1)}
-            style={({ pressed }) => [
-              styles.tileControlButton,
-              pressed ? styles.tileControlButtonPressed : null,
-            ]}
-          >
-            <Text style={styles.tileControlText}>Forward</Text>
-          </Pressable>
-        </View>
-      </View>
+      <GameTopBar />
       <ScrollView
+        ref={boardScrollRef}
         bounces={false}
+        style={styles.boardScroll}
         showsVerticalScrollIndicator
         contentContainerStyle={styles.boardContent}
+        onContentSizeChange={scrollToBoardBottom}
+        onLayout={scrollToBoardBottom}
       >
         <Board width={boardWidth} height={boardHeight}>
           {QUESTION_TILE_INDEXES.map((tileIndex) => (
@@ -95,7 +84,16 @@ export function GameBoardScreen() {
               boardHeight={boardHeight}
               boardWidth={boardWidth}
               key={tileIndex}
-              size={Math.max(18, iconSize * 0.82)}
+              size={questionBadgeSize}
+              tileIndex={tileIndex}
+            />
+          ))}
+          {BONUS_CHALLENGE_TILE_INDEXES.map((tileIndex) => (
+            <BonusChallengeTrigger
+              boardHeight={boardHeight}
+              boardWidth={boardWidth}
+              key={tileIndex}
+              size={questionBadgeSize}
               tileIndex={tileIndex}
             />
           ))}
@@ -107,7 +105,16 @@ export function GameBoardScreen() {
           />
         </Board>
       </ScrollView>
+      <BottomGameConsole />
       <QuestionModal />
+      <BonusChallengeModal />
+      <AnswerFeedbackModal
+        correct={!!feedback?.correct}
+        onClose={closeFeedback}
+        points={feedback?.points ?? 0}
+        visible={!!feedback}
+      />
+      <GameAudioEffects />
     </View>
   );
 }
@@ -115,51 +122,13 @@ export function GameBoardScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: "#111",
+    backgroundColor: "transparent",
   },
-  controls: {
-    alignItems: "center",
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    justifyContent: "center",
-    paddingBottom: 8,
-    paddingTop: 68,
-  },
-  counter: {
-    backgroundColor: "#222",
-    borderRadius: 8,
-    maxWidth: 280,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  counterText: {
-    color: "#f4c542",
-    fontSize: 14,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  tileControls: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  tileControlButton: {
-    backgroundColor: "#ffb12d",
-    borderRadius: 8,
-    minWidth: 88,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  tileControlButtonPressed: {
-    opacity: 0.78,
-  },
-  tileControlText: {
-    color: "#221406",
-    fontSize: 13,
-    fontWeight: "800",
-    textAlign: "center",
+  boardScroll: {
+    flex: 1,
   },
   boardContent: {
     alignItems: "center",
+    backgroundColor: "transparent",
   },
 });

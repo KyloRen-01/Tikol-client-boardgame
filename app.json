@@ -1,29 +1,41 @@
 {
   "expo": {
-    "name": "tikol",
+    "name": "Tikol",
     "slug": "tikol",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/game-background/GameBoardFrame.png",
+    "icon": "./assets/tikolicon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/game-background/GameBoardFrame.png",
-      "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
+      "icon": "./assets/tikolicon.png",
       "supportsTablet": true
     },
     "android": {
+      "package": "com.tikol.boardgame",
+      "versionCode": 1,
+      "icon": "./assets/tikolicon.png",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/game-background/GameBoardFrame.png"
+        "foregroundImage": "./assets/tikolicon.png",
+        "backgroundColor": "#0b2c68"
       },
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "single",
-      "favicon": "./assets/game-background/GameBoardFrame.png"
-    }
+      "favicon": "./assets/tikolicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "02f5733d-189b-4ab4-90d5-4ea5e06ac47c"
+      }
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-audio",
+      "expo-asset"
+    ]
   }
 }

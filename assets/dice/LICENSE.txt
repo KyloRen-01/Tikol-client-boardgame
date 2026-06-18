@@ -1,0 +1,14 @@
+Dice face PNGs from Game-icons.net:
+https://game-icons.net/
+
+Icons:
+- dice-six-faces-one
+- dice-six-faces-two
+- dice-six-faces-three
+- dice-six-faces-four
+- dice-six-faces-five
+- dice-six-faces-six
+
+Author: Delapouite
+License: Creative Commons Attribution 3.0 Unported (CC BY 3.0)
+License URL: https://creativecommons.org/licenses/by/3.0/

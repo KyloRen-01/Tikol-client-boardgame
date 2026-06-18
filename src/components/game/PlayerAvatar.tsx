@@ -10,7 +10,7 @@ import Animated, {
 } from "react-native-reanimated";
 import tiles from "../../../lib/store/useTileStore";
 import { CharacterIcon } from "../character/CharacterIcon";
-import { useGameStore } from "../../store/gameStore";
+import { FINISH_TILE_INDEX, useGameStore } from "../../store/gameStore";
 import type { CharacterId } from "../../types/game";
 
 type PlayerAvatarProps = {
@@ -59,6 +59,7 @@ export function PlayerAvatar({
   size,
 }: PlayerAvatarProps) {
   const currentTileIndex = useGameStore((state) => state.currentTileIndex);
+  const markGameFinished = useGameStore((state) => state.markGameFinished);
   const scaleX = boardWidth / FIGMA_WIDTH;
   const scaleY = boardHeight / FIGMA_HEIGHT;
   const previousTileIndex = useRef(currentTileIndex);
@@ -88,6 +89,10 @@ export function PlayerAvatar({
       const nextTileIndex = path[pathIndex];
 
       if (nextTileIndex === undefined) {
+        if (currentTileIndex >= FINISH_TILE_INDEX) {
+          markGameFinished();
+        }
+
         return;
       }
 
@@ -106,7 +111,16 @@ export function PlayerAvatar({
     };
 
     animatePathStep(0);
-  }, [currentTileIndex, hopScale, scaleX, scaleY, size, x, y]);
+  }, [
+    currentTileIndex,
+    hopScale,
+    markGameFinished,
+    scaleX,
+    scaleY,
+    size,
+    x,
+    y,
+  ]);
 
   const avatarStyle = useAnimatedStyle(() => ({
     left: x.value,

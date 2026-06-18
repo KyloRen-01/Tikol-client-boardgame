@@ -1,15 +1,19 @@
-import type { PlayerProfile, QuestionBankItem } from "../types/game";
+import type { PlayerProfile, QuestionBankItem, QuestionHistoryItem, SessionCard } from "../types/game";
 
 const STORAGE_KEY = "tikol-web-db";
 
 type WebDatabaseSnapshot = {
   players: PlayerProfile[];
   questions: QuestionBankItem[];
+  sessions: SessionCard[];
+  history: QuestionHistoryItem[];
 };
 
 const emptySnapshot: WebDatabaseSnapshot = {
   players: [],
   questions: [],
+  sessions: [],
+  history: [],
 };
 
 function readSnapshot(): WebDatabaseSnapshot {
@@ -24,7 +28,7 @@ function readSnapshot(): WebDatabaseSnapshot {
   }
 
   try {
-    return JSON.parse(raw) as WebDatabaseSnapshot;
+    return { ...emptySnapshot, ...(JSON.parse(raw) as Partial<WebDatabaseSnapshot>) };
   } catch {
     return emptySnapshot;
   }
@@ -49,6 +53,15 @@ export const webDb = {
   seedQuestions: (questions: QuestionBankItem[]) => {
     const snapshot = readSnapshot();
     writeSnapshot({ ...snapshot, questions });
+  },
+  saveSession: (session: SessionCard) => {
+    const snapshot = readSnapshot();
+    const sessions = snapshot.sessions.filter((item) => item.id !== session.id);
+    writeSnapshot({ ...snapshot, sessions: [session, ...sessions] });
+  },
+  saveHistory: (item: QuestionHistoryItem) => {
+    const snapshot = readSnapshot();
+    writeSnapshot({ ...snapshot, history: [...snapshot.history, item] });
   },
 };
 

@@ -1,43 +1,31 @@
 import { useEffect } from "react";
-import {
-  initializeDatabase,
-  savePlayerProfile,
-  seedQuestionBank,
-} from "./repository";
-import { INITIAL_QUESTIONS } from "./seed";
+import { saveGameSession, savePlayerProfile } from "./repository";
+import { diag, diagError } from "../diagnostics/diagnosticLog";
 import { usePlayerStore } from "../store/usePlayerStore";
 
 export function useDatabaseLifecycle() {
   const player = usePlayerStore((state) => state.player);
-
-  useEffect(() => {
-    let isActive = true;
-
-    async function prepareDatabase() {
-      try {
-        await initializeDatabase();
-        await seedQuestionBank(INITIAL_QUESTIONS);
-      } catch (error) {
-        if (isActive) {
-          console.warn("Database initialization failed", error);
-        }
-      }
-    }
-
-    prepareDatabase();
-
-    return () => {
-      isActive = false;
-    };
-  }, []);
+  const currentSession = usePlayerStore((state) => state.currentSession);
 
   useEffect(() => {
     if (!player) {
       return;
     }
 
+    diag("db.savePlayerProfile.begin", { id: player.id });
     savePlayerProfile(player).catch((error) => {
-      console.warn("Player profile save failed", error);
+      diagError("db.savePlayerProfile.failed", error);
     });
   }, [player]);
+
+  useEffect(() => {
+    if (!player || !currentSession) {
+      return;
+    }
+
+    diag("db.saveGameSession.begin", { id: currentSession.id });
+    saveGameSession(currentSession, player.name).catch((error) => {
+      diagError("db.saveGameSession.failed", error);
+    });
+  }, [currentSession, player]);
 }
