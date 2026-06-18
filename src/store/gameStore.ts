@@ -16,7 +16,7 @@ import { useScoreStore } from "./scoreStore";
 export type DiceFace = 1 | 2 | 3 | 4 | 5 | 6;
 export type MatterPhase = "SOLID" | "LIQUID" | "GAS";
 
-const START_TILE_INDEX = 0;
+export const START_TILE_INDEX = 0;
 export const FINISH_TILE_INDEX = 99;
 
 export const QUESTION_TILE_INDEXES = Object.keys(QUESTIONS_BY_TILE_INDEX).map(

@@ -11,6 +11,7 @@ import { BottomGameConsole } from "../components/game/BottomGameConsole";
 import { BonusChallengeModal } from "../components/game/BonusChallengeModal";
 import { BonusChallengeTrigger } from "../components/game/BonusChallengeTrigger";
 import { GameAudioEffects } from "../components/game/GameAudioEffects";
+import { FinishCelebrationModal } from "../components/game/FinishCelebrationModal";
 import { GameTopBar } from "../components/game/GameTopBar";
 import { PlayerAvatar } from "../components/game/PlayerAvatar";
 import { QuestionModal } from "../components/game/QuestionModal";
@@ -18,6 +19,7 @@ import { QuestionTrigger } from "../components/game/QuestionTrigger";
 import {
   BONUS_CHALLENGE_TILE_INDEXES,
   QUESTION_TILE_INDEXES,
+  START_TILE_INDEX,
   useGameStore,
 } from "../store/gameStore";
 import { usePlayerStore } from "../store/usePlayerStore";
@@ -40,6 +42,8 @@ export function GameBoardScreen() {
   const initializeSession = useGameStore((state) => state.initializeSession);
   const feedback = useGameStore((state) => state.feedback);
   const closeFeedback = useGameStore((state) => state.closeFeedback);
+  const currentTileIndex = useGameStore((state) => state.currentTileIndex);
+  const isGameFinished = useGameStore((state) => state.isGameFinished);
   const boardWidth = screenWidth;
   const boardHeight = boardWidth * ASPECT_RATIO;
   const scaleX = boardWidth / FIGMA_WIDTH;
@@ -65,6 +69,30 @@ export function GameBoardScreen() {
       boardScrollRef.current?.scrollToEnd({ animated: false });
     });
   }, []);
+
+  useEffect(() => {
+    if (!isGameFinished) {
+      return;
+    }
+
+    const frame = requestAnimationFrame(() => {
+      boardScrollRef.current?.scrollTo({ animated: true, y: 0 });
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [isGameFinished]);
+
+  useEffect(() => {
+    if (isGameFinished || currentTileIndex !== START_TILE_INDEX) {
+      return;
+    }
+
+    const frame = requestAnimationFrame(() => {
+      boardScrollRef.current?.scrollToEnd({ animated: false });
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [currentTileIndex, isGameFinished]);
 
   return (
     <View style={styles.root}>
@@ -101,8 +129,10 @@ export function GameBoardScreen() {
             boardHeight={boardHeight}
             boardWidth={boardWidth}
             characterId={characterId}
+            key={sessionToken ?? "pending-session"}
             size={iconSize}
           />
+          <FinishCelebrationModal boardHeight={boardHeight} boardWidth={boardWidth} />
         </Board>
       </ScrollView>
       <BottomGameConsole />

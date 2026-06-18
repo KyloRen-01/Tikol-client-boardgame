@@ -337,7 +337,7 @@ export const QUESTIONS_BY_TILE_INDEX: Record<number, Question> = {
     correctAnswerIndex: 0,
     correctAnswerPoints: 3,
   },
-  99: {
+  96: {
     id: 30,
     text: "Which evidence best shows that solid ice and hot steam are made of the same kind of particles?",
     choices: [
