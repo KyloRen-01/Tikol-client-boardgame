@@ -41,6 +41,7 @@ function getInitialGameState() {
     activeBonusChallenge: null as BonusChallenge | null,
     isQuestionModalVisible: false,
     isBonusChallengeModalVisible: false,
+    isPlayerMoving: false,
     isGameFinished: false,
     feedback: null as { correct: boolean; points: number } | null,
   };
@@ -70,6 +71,7 @@ type GameState = {
   activeBonusChallenge: BonusChallenge | null;
   isQuestionModalVisible: boolean;
   isBonusChallengeModalVisible: boolean;
+  isPlayerMoving: boolean;
   isGameFinished: boolean;
   feedback: { correct: boolean; points: number } | null;
   hydrateSession: () => Promise<string | null>;
@@ -78,6 +80,7 @@ type GameState = {
   setDiceResult: (diceResult: DiceFace) => void;
   setCurrentTileIndex: (tileIndex: number) => void;
   movePlayer: (steps: number) => void;
+  completePlayerMove: () => void;
   markGameFinished: () => void;
   checkTileForQuestion: (tileIndex: number) => void;
   closeQuestionModal: () => void;
@@ -126,36 +129,60 @@ export const useGameStore = create<GameState>((set, get) => ({
   setDiceResult: (diceResult) => set({ diceResult }),
   setCurrentTileIndex: (tileIndex) => {
     const nextTileIndex = clampTileIndex(tileIndex);
+    const isMovingToNewTile = nextTileIndex !== get().currentTileIndex;
 
     set({
       currentTileIndex: nextTileIndex,
       currentPhase: getPhaseForTile(nextTileIndex),
+      activeQuestion: null,
+      activeBonusChallenge: null,
+      isQuestionModalVisible: false,
+      isBonusChallengeModalVisible: false,
+      isPlayerMoving: isMovingToNewTile,
       isGameFinished:
         nextTileIndex < FINISH_TILE_INDEX ? false : get().isGameFinished,
     });
-    get().checkTileForQuestion(nextTileIndex);
   },
   movePlayer: (steps) => {
-    let landedTileIndex = START_TILE_INDEX;
-
     set((state) => {
       const nextTileIndex = clampTileIndex(state.currentTileIndex + steps);
-      landedTileIndex = nextTileIndex;
 
       return {
         currentTileIndex: nextTileIndex,
         currentPhase: getPhaseForTile(nextTileIndex),
+        activeQuestion: null,
+        activeBonusChallenge: null,
+        isQuestionModalVisible: false,
+        isBonusChallengeModalVisible: false,
+        isPlayerMoving: nextTileIndex !== state.currentTileIndex,
         isGameFinished:
           nextTileIndex < FINISH_TILE_INDEX ? false : state.isGameFinished,
       };
     });
-    get().checkTileForQuestion(landedTileIndex);
+  },
+  completePlayerMove: () => {
+    const state = get();
+
+    if (state.currentTileIndex >= FINISH_TILE_INDEX) {
+      set({
+        activeQuestion: null,
+        activeBonusChallenge: null,
+        isQuestionModalVisible: false,
+        isBonusChallengeModalVisible: false,
+        isGameFinished: true,
+        isPlayerMoving: false,
+      });
+      return;
+    }
+
+    set({ isPlayerMoving: false });
+    get().checkTileForQuestion(state.currentTileIndex);
   },
   markGameFinished: () => {
     const state = get();
 
     if (state.currentTileIndex >= FINISH_TILE_INDEX && !state.isGameFinished) {
-      set({ isGameFinished: true });
+      set({ isGameFinished: true, isPlayerMoving: false });
     }
   },
   checkTileForQuestion: (tileIndex) => {
@@ -251,6 +278,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       activeBonusChallenge: null,
       isQuestionModalVisible: false,
       isBonusChallengeModalVisible: false,
+      isPlayerMoving: false,
       isGameFinished: false,
       feedback: null,
     }),

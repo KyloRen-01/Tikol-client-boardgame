@@ -39,10 +39,11 @@ function targetSpin(current: number) {
 export function Dice() {
   const diceResult = useGameStore((state) => state.diceResult);
   const isGameFinished = useGameStore((state) => state.isGameFinished);
+  const isPlayerMoving = useGameStore((state) => state.isPlayerMoving);
   const setDiceResult = useGameStore((state) => state.setDiceResult);
   const movePlayer = useGameStore((state) => state.movePlayer);
   const [isRolling, setIsRolling] = useState(false);
-  const isDisabled = isRolling || isGameFinished;
+  const isDisabled = isRolling || isPlayerMoving || isGameFinished;
 
   const scale = useSharedValue(1);
   const rotateZ = useSharedValue(0);
