@@ -1,6 +1,7 @@
 import { memo, useCallback, useEffect, useState } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { useGameStore } from "../../store/gameStore";
+import { useAnswerFeedbackSound } from "./useAnswerFeedbackSound";
 
 export const QuestionModal = memo(function QuestionModal() {
   const activeQuestion = useGameStore((state) => state.activeQuestion);
@@ -11,6 +12,7 @@ export const QuestionModal = memo(function QuestionModal() {
   const resolveQuestionAnswer = useGameStore(
     (state) => state.resolveQuestionAnswer,
   );
+  const playAnswerFeedbackSound = useAnswerFeedbackSound();
   const [selectedAnswerIndex, setSelectedAnswerIndex] = useState<number | null>(
     null,
   );
@@ -22,12 +24,20 @@ export const QuestionModal = memo(function QuestionModal() {
   }, [activeQuestion?.id, isQuestionModalVisible]);
 
   const handleLockIn = useCallback(() => {
-    if (selectedAnswerIndex === null) {
+    if (selectedAnswerIndex === null || !activeQuestion) {
       return;
     }
 
+    playAnswerFeedbackSound(
+      selectedAnswerIndex === activeQuestion.correctAnswerIndex,
+    );
     resolveQuestionAnswer(selectedAnswerIndex);
-  }, [resolveQuestionAnswer, selectedAnswerIndex]);
+  }, [
+    activeQuestion,
+    playAnswerFeedbackSound,
+    resolveQuestionAnswer,
+    selectedAnswerIndex,
+  ]);
 
   if (!activeQuestion) {
     return null;
@@ -43,7 +53,9 @@ export const QuestionModal = memo(function QuestionModal() {
     >
       <View style={styles.backdrop}>
         <View style={styles.card}>
-          <Text style={styles.questionNumber}>Question {activeQuestion.id}</Text>
+          <Text style={styles.questionNumber}>
+            Points: {activeQuestion.correctAnswerPoints}
+          </Text>
           <Text style={styles.questionText}>{activeQuestion.text}</Text>
 
           <View style={styles.choiceList}>
@@ -90,7 +102,9 @@ export const QuestionModal = memo(function QuestionModal() {
             style={({ pressed }) => [
               styles.lockButton,
               selectedAnswerIndex === null ? styles.lockButtonDisabled : null,
-              pressed && selectedAnswerIndex !== null ? styles.lockButtonPressed : null,
+              pressed && selectedAnswerIndex !== null
+                ? styles.lockButtonPressed
+                : null,
             ]}
           >
             <Text style={styles.lockButtonText}>Lock In</Text>

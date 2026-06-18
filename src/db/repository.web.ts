@@ -1,5 +1,5 @@
 import { webDb } from "./client.web";
-import type { PlayerProfile, QuestionBankItem } from "../types/game";
+import type { GameSession, PlayerProfile, QuestionBankItem, QuestionHistoryItem } from "../types/game";
 
 export async function initializeDatabase() {
   return Promise.resolve();
@@ -19,4 +19,25 @@ export async function seedQuestionBank(questions: QuestionBankItem[]) {
 
 export async function listQuestions() {
   return webDb.listQuestions();
+}
+
+export async function saveGameSession(session: GameSession, playerName: string) {
+  webDb.saveSession({
+    id: session.id,
+    playerName,
+    characterId: session.characterId,
+    startedAt: session.startedAt,
+  });
+}
+
+export async function saveQuestionHistory(item: Omit<QuestionHistoryItem, "id">) {
+  webDb.saveHistory({ ...item, id: Date.now() });
+}
+
+export async function listGameSessions() {
+  return webDb.getSnapshot().sessions.sort((a, b) => b.startedAt - a.startedAt);
+}
+
+export async function listQuestionHistory(sessionId: string) {
+  return webDb.getSnapshot().history.filter((item) => item.sessionId === sessionId);
 }

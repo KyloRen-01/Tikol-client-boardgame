@@ -2,7 +2,10 @@ export type NavigationScreen =
   | "HOME"
   | "NAME_INPUT"
   | "CHARACTER_SELECTION"
-  | "GAME_BOARD";
+  | "LOADING"
+  | "GAME_BOARD"
+  | "HISTORY_BOARDS"
+  | "SESSION_DETAIL";
 
 export type CharacterId = "Solid" | "Liquid" | "Gas" | "Fire";
 
@@ -27,6 +30,25 @@ export interface GameSession {
   characterId: CharacterId;
   tileId: number;
   startedAt: number;
+}
+
+export interface SessionCard {
+  id: string;
+  playerName: string;
+  characterId: CharacterId;
+  startedAt: number;
+}
+
+export interface QuestionHistoryItem {
+  id: number;
+  sessionId: string;
+  questionId: number;
+  questionText: string;
+  selectedAnswer: string;
+  correctAnswer: string;
+  isCorrect: boolean;
+  points: number;
+  answeredAt: number;
 }
 
 export interface QuestionBankItem {

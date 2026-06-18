@@ -1,10 +1,11 @@
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { db, rawDb } from "./client.native";
-import { createTablesSql, playerProfiles, questionBank } from "./schema";
-import type { PlayerProfile, QuestionBankItem } from "../types/game";
+import { runMigrations } from "./migrate";
+import { gameSessions, playerProfiles, questionBank, questionHistory } from "./schema";
+import type { GameSession, PlayerProfile, QuestionBankItem, QuestionHistoryItem } from "../types/game";
 
 export async function initializeDatabase() {
-  await rawDb.execAsync(createTablesSql);
+  await runMigrations(rawDb);
 }
 
 export async function savePlayerProfile(player: PlayerProfile) {
@@ -32,4 +33,26 @@ export async function seedQuestionBank(questions: QuestionBankItem[]) {
 
 export async function listQuestions() {
   return db.select().from(questionBank);
+}
+
+export async function saveGameSession(session: GameSession, playerName: string) {
+  await db.insert(gameSessions).values({
+    id: session.id,
+    playerId: session.playerId,
+    playerName,
+    characterId: session.characterId,
+    startedAt: session.startedAt,
+  }).onConflictDoNothing();
+}
+
+export async function saveQuestionHistory(item: Omit<QuestionHistoryItem, "id">) {
+  await db.insert(questionHistory).values(item);
+}
+
+export async function listGameSessions() {
+  return db.select().from(gameSessions).orderBy(desc(gameSessions.startedAt));
+}
+
+export async function listQuestionHistory(sessionId: string) {
+  return db.select().from(questionHistory).where(eq(questionHistory.sessionId, sessionId)).orderBy(questionHistory.answeredAt);
 }
