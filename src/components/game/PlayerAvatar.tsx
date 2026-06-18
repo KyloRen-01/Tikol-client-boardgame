@@ -10,13 +10,14 @@ import Animated, {
 } from "react-native-reanimated";
 import tiles from "../../../lib/store/useTileStore";
 import { CharacterIcon } from "../character/CharacterIcon";
-import { FINISH_TILE_INDEX, useGameStore } from "../../store/gameStore";
+import { useGameStore } from "../../store/gameStore";
 import type { CharacterId } from "../../types/game";
 
 type PlayerAvatarProps = {
   boardWidth: number;
   boardHeight: number;
   characterId: CharacterId;
+  onTileStep?: (tileIndex: number) => void;
   size: number;
 };
 
@@ -56,10 +57,11 @@ export function PlayerAvatar({
   boardWidth,
   boardHeight,
   characterId,
+  onTileStep,
   size,
 }: PlayerAvatarProps) {
   const currentTileIndex = useGameStore((state) => state.currentTileIndex);
-  const markGameFinished = useGameStore((state) => state.markGameFinished);
+  const completePlayerMove = useGameStore((state) => state.completePlayerMove);
   const scaleX = boardWidth / FIGMA_WIDTH;
   const scaleY = boardHeight / FIGMA_HEIGHT;
   const previousTileIndex = useRef(currentTileIndex);
@@ -81,6 +83,11 @@ export function PlayerAvatar({
 
   useEffect(() => {
     const startTileIndex = previousTileIndex.current;
+
+    if (startTileIndex === currentTileIndex) {
+      return;
+    }
+
     const path = getTilePath(startTileIndex, currentTileIndex);
 
     previousTileIndex.current = currentTileIndex;
@@ -89,15 +96,13 @@ export function PlayerAvatar({
       const nextTileIndex = path[pathIndex];
 
       if (nextTileIndex === undefined) {
-        if (currentTileIndex >= FINISH_TILE_INDEX) {
-          markGameFinished();
-        }
-
+        completePlayerMove();
         return;
       }
 
       const nextPosition = getTilePosition(nextTileIndex, scaleX, scaleY, size);
 
+      onTileStep?.(nextTileIndex);
       hopScale.value = withSequence(
         withSpring(1.12, { damping: 8, stiffness: 220 }),
         withSpring(1, { damping: 9, stiffness: 220 }),
@@ -113,8 +118,9 @@ export function PlayerAvatar({
     animatePathStep(0);
   }, [
     currentTileIndex,
+    completePlayerMove,
     hopScale,
-    markGameFinished,
+    onTileStep,
     scaleX,
     scaleY,
     size,

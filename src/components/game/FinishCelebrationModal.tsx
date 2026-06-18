@@ -1,5 +1,11 @@
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { memo, useCallback, useEffect, useState } from "react";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -10,14 +16,8 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import type { SharedValue } from "react-native-reanimated";
-import tiles from "../../../lib/store/useTileStore";
-import { FINISH_TILE_INDEX, useGameStore } from "../../store/gameStore";
+import { useGameStore } from "../../store/gameStore";
 import { useScoreStore } from "../../store/scoreStore";
-
-type FinishCelebrationModalProps = {
-  boardWidth: number;
-  boardHeight: number;
-};
 
 type ConfettiSpec = {
   color: string;
@@ -37,12 +37,9 @@ type SparkleSpec = {
   y: number;
 };
 
-const FIGMA_WIDTH = 281;
-const FIGMA_HEIGHT = 2405;
 const CARD_MARGIN = 14;
 const CARD_MAX_WIDTH = 350;
 const CARD_MIN_WIDTH = 210;
-const CARD_OFFSET_Y = 48;
 
 const CONFETTI: ConfettiSpec[] = [
   { color: "#ef4444", delay: 0.01, height: 16, rotate: 18, width: 7, x: -142, y: -58 },
@@ -68,10 +65,6 @@ const SPARKLES: SparkleSpec[] = [
   { color: "#ffdf6e", delay: 0.76, size: 9, x: -92, y: 18 },
   { color: "#ffffff", delay: 0.9, size: 6, x: 74, y: 30 },
 ];
-
-function clamp(value: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, value));
-}
 
 function ConfettiPiece({
   anchorX,
@@ -198,10 +191,8 @@ function PulseRing({
   );
 }
 
-export const FinishCelebrationModal = memo(function FinishCelebrationModal({
-  boardHeight,
-  boardWidth,
-}: FinishCelebrationModalProps) {
+export const FinishCelebrationModal = memo(function FinishCelebrationModal() {
+  const { height, width } = useWindowDimensions();
   const isGameFinished = useGameStore((state) => state.isGameFinished);
   const initializeSession = useGameStore((state) => state.initializeSession);
   const score = useScoreStore((state) => state.score);
@@ -209,32 +200,14 @@ export const FinishCelebrationModal = memo(function FinishCelebrationModal({
   const entrance = useSharedValue(0);
   const pulse = useSharedValue(0);
   const confetti = useSharedValue(0);
-
-  const scaleX = boardWidth / FIGMA_WIDTH;
-  const scaleY = boardHeight / FIGMA_HEIGHT;
-  const anchor = useMemo(() => {
-    const finishTile = tiles[FINISH_TILE_INDEX] ?? tiles[tiles.length - 1];
-
-    return {
-      x: finishTile.x * scaleX,
-      y: finishTile.y * scaleY,
-    };
-  }, [scaleX, scaleY]);
+  const anchor = {
+    x: width / 2,
+    y: height / 2,
+  };
   const cardWidth = Math.min(
     CARD_MAX_WIDTH,
-    Math.max(CARD_MIN_WIDTH, boardWidth - CARD_MARGIN * 2),
+    Math.max(CARD_MIN_WIDTH, width - CARD_MARGIN * 2),
   );
-  const cardLeft = clamp(
-    anchor.x - cardWidth / 2,
-    CARD_MARGIN,
-    Math.max(CARD_MARGIN, boardWidth - cardWidth - CARD_MARGIN),
-  );
-  const cardTop = Math.min(
-    anchor.y + CARD_OFFSET_Y,
-    Math.max(anchor.y + 22, boardHeight - 254),
-  );
-  const pointerLeft = clamp(anchor.x - cardLeft - 10, 24, cardWidth - 44);
-  const beamHeight = Math.max(18, cardTop - anchor.y - 8);
 
   useEffect(() => {
     if (!isGameFinished) {
@@ -272,7 +245,7 @@ export const FinishCelebrationModal = memo(function FinishCelebrationModal({
       ],
     };
   });
-  const anchorAnimatedStyle = useAnimatedStyle(() => {
+  const glowAnimatedStyle = useAnimatedStyle(() => {
     const glow = 1 + Math.sin(pulse.value * Math.PI) * 0.18;
 
     return {
@@ -280,14 +253,6 @@ export const FinishCelebrationModal = memo(function FinishCelebrationModal({
       transform: [{ scale: glow }],
     };
   });
-  const beamAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: Math.min(1, entrance.value),
-    transform: [
-      {
-        scaleY: Math.max(0.08, Math.min(1, entrance.value)),
-      },
-    ],
-  }));
   const titleAnimatedStyle = useAnimatedStyle(() => ({
     transform: [
       {
@@ -311,26 +276,16 @@ export const FinishCelebrationModal = memo(function FinishCelebrationModal({
   }
 
   return (
-    <View pointerEvents="box-none" style={styles.overlay}>
+    <View style={styles.overlay}>
+      <View style={styles.backdrop} />
       <View pointerEvents="none" style={styles.effectsLayer}>
         <PulseRing anchorX={anchor.x} anchorY={anchor.y} delay={0} progress={pulse} />
         <PulseRing anchorX={anchor.x} anchorY={anchor.y} delay={0.38} progress={pulse} />
         <Animated.View
           style={[
-            styles.anchorGlow,
-            { left: anchor.x - 24, top: anchor.y - 24 },
-            anchorAnimatedStyle,
-          ]}
-        />
-        <Animated.View
-          style={[
-            styles.beam,
-            {
-              height: beamHeight,
-              left: anchor.x - 3,
-              top: anchor.y + 18,
-            },
-            beamAnimatedStyle,
+            styles.centerGlow,
+            { left: anchor.x - 92, top: anchor.y - 92 },
+            glowAnimatedStyle,
           ]}
         />
         {SPARKLES.map((spec) => (
@@ -358,15 +313,10 @@ export const FinishCelebrationModal = memo(function FinishCelebrationModal({
         accessibilityViewIsModal
         style={[
           styles.card,
-          {
-            left: cardLeft,
-            top: cardTop,
-            width: cardWidth,
-          },
+          { width: cardWidth },
           cardAnimatedStyle,
         ]}
       >
-        <View style={[styles.pointer, { left: pointerLeft }]} />
         <Animated.View style={[styles.medal, medalAnimatedStyle]}>
           <View style={styles.medalInner}>
             <Text style={styles.medalText}>100</Text>
@@ -430,29 +380,22 @@ const styles = StyleSheet.create({
     marginTop: 14,
     width: "100%",
   },
-  anchorGlow: {
-    backgroundColor: "rgba(255, 177, 45, 0.35)",
-    borderColor: "#fff7df",
-    borderRadius: 24,
-    borderWidth: 2,
-    height: 48,
-    position: "absolute",
-    shadowColor: "#ffdf6e",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.74,
-    shadowRadius: 14,
-    width: 48,
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(17, 17, 17, 0.46)",
   },
-  beam: {
-    backgroundColor: "rgba(255, 223, 110, 0.72)",
-    borderRadius: 999,
+  centerGlow: {
+    backgroundColor: "rgba(255, 177, 45, 0.18)",
+    borderColor: "rgba(255, 247, 223, 0.72)",
+    borderRadius: 92,
+    borderWidth: 2,
+    height: 184,
     position: "absolute",
     shadowColor: "#ffdf6e",
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.54,
-    shadowRadius: 8,
-    transformOrigin: "top",
-    width: 6,
+    shadowOpacity: 0.48,
+    shadowRadius: 18,
+    width: 184,
   },
   card: {
     alignItems: "center",
@@ -464,7 +407,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingBottom: 18,
     paddingTop: 36,
-    position: "absolute",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.28,
@@ -505,18 +447,10 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: CARD_MARGIN,
     zIndex: 8,
-  },
-  pointer: {
-    backgroundColor: "#fff7df",
-    borderColor: "#382412",
-    borderLeftWidth: 3,
-    borderTopWidth: 3,
-    height: 20,
-    position: "absolute",
-    top: -12,
-    transform: [{ rotate: "45deg" }],
-    width: 20,
   },
   pressed: {
     opacity: 0.82,
