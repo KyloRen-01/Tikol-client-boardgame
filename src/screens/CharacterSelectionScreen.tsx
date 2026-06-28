@@ -82,9 +82,11 @@ export function CharacterSelectionScreen() {
                     onPress={async () => {
                       const character = confirmCharacter();
                       if (character) {
-                        startSession();
-                        await initializeSession();
-                        goNext();
+                        const session = await startSession();
+                        if (session) {
+                          await initializeSession();
+                          goNext();
+                        }
                       }
                     }}
                     style={[

@@ -49,10 +49,12 @@ export function LoadingScreen() {
     <View style={styles.root}>
       <Animated.View style={[styles.spinner, { transform: [{ rotate }] }]} />
       <Text style={styles.brand}>TIKOL</Text>
-      <Text style={styles.title}>Particle Model Board Game</Text>
+      <Text style={styles.title}>Particle Model of Matter Offline Game</Text>
       <Text style={styles.message}>Preparing your board...</Text>
       <View style={styles.progressTrack}>
-        <Animated.View style={[styles.progressFill, { width: progressWidth }]} />
+        <Animated.View
+          style={[styles.progressFill, { width: progressWidth }]}
+        />
       </View>
     </View>
   );

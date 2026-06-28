@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { Animated, Easing, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Animated,
+  Easing,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { CreditsModal } from "./CreditsModal";
+import { UserManualModal } from "./UserManualModal";
 import { useNavigationStore } from "../store/useNavigationStore";
 
 const PARTICLES = [
@@ -13,9 +21,11 @@ const PARTICLES = [
 export function WelcomeScreen() {
   const goTo = useNavigationStore((state) => state.goTo);
   const [isCreditsVisible, setIsCreditsVisible] = useState(false);
+  const [isManualVisible, setIsManualVisible] = useState(false);
   const fade = useRef(new Animated.Value(0)).current;
   const slide = useRef(new Animated.Value(24)).current;
   const glow = useRef(new Animated.Value(0)).current;
+  const currentYear = new Date().getFullYear();
 
   useEffect(() => {
     Animated.parallel([
@@ -62,15 +72,29 @@ export function WelcomeScreen() {
   return (
     <View style={styles.root}>
       <Pressable
+        accessibilityLabel="Open user manual"
+        accessibilityRole="button"
+        onPress={() => setIsManualVisible(true)}
+        style={({ pressed }) => [
+          styles.iconButton,
+          styles.helpButton,
+          pressed ? styles.iconButtonPressed : null,
+        ]}
+      >
+        <Text style={styles.iconText}>?</Text>
+      </Pressable>
+
+      <Pressable
         accessibilityLabel="Open credits"
         accessibilityRole="button"
         onPress={() => setIsCreditsVisible(true)}
         style={({ pressed }) => [
+          styles.iconButton,
           styles.infoButton,
-          pressed ? styles.infoButtonPressed : null,
+          pressed ? styles.iconButtonPressed : null,
         ]}
       >
-        <Text style={styles.infoText}>i</Text>
+        <Text style={styles.iconText}>i</Text>
       </Pressable>
 
       {PARTICLES.map((particle, index) => (
@@ -105,22 +129,38 @@ export function WelcomeScreen() {
         <Text style={styles.subtitle}>
           Technology-Integrated Knowledge for Observing Learning
         </Text>
-        <Text style={styles.title}>Particle Model Board Game</Text>
+        <Text style={styles.title}>Particle Model of Matter Offline Game</Text>
         <Pressable
           accessibilityRole="button"
           onPress={() => goTo("NAME_INPUT")}
-          style={({ pressed }) => [styles.startButton, pressed ? styles.startPressed : null]}
+          style={({ pressed }) => [
+            styles.startButton,
+            pressed ? styles.startPressed : null,
+          ]}
         >
           <Text style={styles.startText}>Start Game</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
           onPress={() => goTo("HISTORY_BOARDS")}
-          style={({ pressed }) => [styles.historyButton, pressed ? styles.startPressed : null]}
+          style={({ pressed }) => [
+            styles.historyButton,
+            pressed ? styles.startPressed : null,
+          ]}
         >
           <Text style={styles.historyText}>History Boards</Text>
         </Pressable>
       </Animated.View>
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>Created {currentYear}</Text>
+        <Text style={styles.footerText}>
+          {'App Owner: John Rey "Tiks" Pacete'}
+        </Text>
+      </View>
+      <UserManualModal
+        onClose={() => setIsManualVisible(false)}
+        visible={isManualVisible}
+      />
       <CreditsModal
         onClose={() => setIsCreditsVisible(false)}
         visible={isCreditsVisible}
@@ -137,6 +177,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     overflow: "hidden",
     padding: 28,
+    paddingBottom: 82,
   },
   particle: {
     backgroundColor: "#ffb12d",
@@ -206,25 +247,46 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "900",
   },
-  infoButton: {
+  footer: {
+    alignItems: "center",
+    bottom: 18,
+    left: 18,
+    position: "absolute",
+    right: 18,
+    zIndex: 1,
+  },
+  footerText: {
+    color: "#fff5df",
+    fontSize: 12,
+    fontWeight: "800",
+    lineHeight: 18,
+    textAlign: "center",
+  },
+  helpButton: {
+    left: 18,
+    top: 18,
+  },
+  iconButton: {
     alignItems: "center",
     backgroundColor: "#ffb12d",
     borderRadius: 18,
     height: 36,
     justifyContent: "center",
     position: "absolute",
-    right: 18,
-    top: 18,
     width: 36,
     zIndex: 2,
   },
-  infoButtonPressed: {
+  iconButtonPressed: {
     opacity: 0.84,
   },
-  infoText: {
+  iconText: {
     color: "#101625",
     fontSize: 20,
     fontWeight: "900",
     lineHeight: 24,
+  },
+  infoButton: {
+    right: 18,
+    top: 18,
   },
 });

@@ -1,4 +1,11 @@
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 type CreditsModalProps = {
   visible: boolean;
@@ -11,7 +18,7 @@ const CREDIT_SECTIONS = [
     lines: [
       "TIKOL",
       "Technology-Integrated Knowledge for Observing Learning",
-      "Particle Model Board Game",
+      "Particle Model of Matter Offline Game",
     ],
   },
   {

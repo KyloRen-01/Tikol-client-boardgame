@@ -102,9 +102,13 @@ export function StartupLoadingScreen() {
           <Text style={styles.brandMarkText}>T</Text>
         </View>
         <Text style={styles.brand}>TIKOL</Text>
-        <Text style={styles.subtitle}>Particle Model Board Game</Text>
+        <Text style={styles.subtitle}>
+          Particle Model of Matter Offline Game
+        </Text>
         <View style={styles.progressTrack}>
-          <Animated.View style={[styles.progressFill, { width: progressWidth }]} />
+          <Animated.View
+            style={[styles.progressFill, { width: progressWidth }]}
+          />
         </View>
         <Text style={styles.status}>Preparing your learning board</Text>
       </Animated.View>

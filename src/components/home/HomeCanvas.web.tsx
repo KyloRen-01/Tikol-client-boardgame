@@ -14,7 +14,9 @@ function WebHomeCanvas() {
           </Text>
         </View>
         <View style={styles.badge}>
-          <Text style={styles.badgeText}>Particle Model Board Game</Text>
+          <Text style={styles.badgeText}>
+            Particle Model of Matter Offline Game
+          </Text>
         </View>
       </View>
       <Text style={styles.caption}>The Particle Model of Matter</Text>
