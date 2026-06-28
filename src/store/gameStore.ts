@@ -252,14 +252,32 @@ export const useGameStore = create<GameState>((set, get) => ({
       return;
     }
 
+    const selectedAnswer =
+      activeBonusChallenge.choices[selectedAnswerIndex] ?? "";
+    const correctAnswer =
+      activeBonusChallenge.choices[activeBonusChallenge.correctAnswerIndex];
     const correct =
       selectedAnswerIndex === activeBonusChallenge.correctAnswerIndex;
     const points = correct ? activeBonusChallenge.correctAnswerPoints : 0;
+    const sessionId = usePlayerStore.getState().currentSession?.id;
 
     if (correct) {
       useScoreStore
         .getState()
         .incrementScore(activeBonusChallenge.correctAnswerPoints);
+    }
+
+    if (sessionId) {
+      void saveQuestionHistory({
+        sessionId,
+        questionId: activeBonusChallenge.id,
+        questionText: `Bonus Challenge: ${activeBonusChallenge.title} - ${activeBonusChallenge.prompt}`,
+        selectedAnswer,
+        correctAnswer,
+        isCorrect: correct,
+        points,
+        answeredAt: Date.now(),
+      });
     }
 
     set({

@@ -17,6 +17,7 @@ import Animated, {
 } from "react-native-reanimated";
 import type { SharedValue } from "react-native-reanimated";
 import { useGameStore } from "../../store/gameStore";
+import { usePlayerStore } from "../../store/usePlayerStore";
 import { useScoreStore } from "../../store/scoreStore";
 
 type ConfettiSpec = {
@@ -42,18 +43,114 @@ const CARD_MAX_WIDTH = 350;
 const CARD_MIN_WIDTH = 210;
 
 const CONFETTI: ConfettiSpec[] = [
-  { color: "#ef4444", delay: 0.01, height: 16, rotate: 18, width: 7, x: -142, y: -58 },
-  { color: "#2f8f46", delay: 0.08, height: 12, rotate: -32, width: 12, x: -98, y: -88 },
-  { color: "#ffb12d", delay: 0.15, height: 17, rotate: 48, width: 7, x: -54, y: -70 },
-  { color: "#1f78d1", delay: 0.2, height: 13, rotate: 28, width: 13, x: -12, y: -104 },
-  { color: "#d946ef", delay: 0.27, height: 15, rotate: -18, width: 8, x: 34, y: -76 },
-  { color: "#0f6b4c", delay: 0.34, height: 12, rotate: 60, width: 12, x: 78, y: -96 },
-  { color: "#f97316", delay: 0.41, height: 17, rotate: -44, width: 7, x: 122, y: -62 },
-  { color: "#38bdf8", delay: 0.49, height: 12, rotate: 12, width: 12, x: 150, y: -20 },
-  { color: "#fde047", delay: 0.57, height: 16, rotate: -58, width: 7, x: -126, y: 6 },
-  { color: "#fb7185", delay: 0.65, height: 13, rotate: 36, width: 13, x: -76, y: 22 },
-  { color: "#34d399", delay: 0.74, height: 16, rotate: -10, width: 7, x: 58, y: 18 },
-  { color: "#a78bfa", delay: 0.84, height: 13, rotate: 52, width: 13, x: 108, y: 4 },
+  {
+    color: "#ef4444",
+    delay: 0.01,
+    height: 16,
+    rotate: 18,
+    width: 7,
+    x: -142,
+    y: -58,
+  },
+  {
+    color: "#2f8f46",
+    delay: 0.08,
+    height: 12,
+    rotate: -32,
+    width: 12,
+    x: -98,
+    y: -88,
+  },
+  {
+    color: "#ffb12d",
+    delay: 0.15,
+    height: 17,
+    rotate: 48,
+    width: 7,
+    x: -54,
+    y: -70,
+  },
+  {
+    color: "#1f78d1",
+    delay: 0.2,
+    height: 13,
+    rotate: 28,
+    width: 13,
+    x: -12,
+    y: -104,
+  },
+  {
+    color: "#d946ef",
+    delay: 0.27,
+    height: 15,
+    rotate: -18,
+    width: 8,
+    x: 34,
+    y: -76,
+  },
+  {
+    color: "#0f6b4c",
+    delay: 0.34,
+    height: 12,
+    rotate: 60,
+    width: 12,
+    x: 78,
+    y: -96,
+  },
+  {
+    color: "#f97316",
+    delay: 0.41,
+    height: 17,
+    rotate: -44,
+    width: 7,
+    x: 122,
+    y: -62,
+  },
+  {
+    color: "#38bdf8",
+    delay: 0.49,
+    height: 12,
+    rotate: 12,
+    width: 12,
+    x: 150,
+    y: -20,
+  },
+  {
+    color: "#fde047",
+    delay: 0.57,
+    height: 16,
+    rotate: -58,
+    width: 7,
+    x: -126,
+    y: 6,
+  },
+  {
+    color: "#fb7185",
+    delay: 0.65,
+    height: 13,
+    rotate: 36,
+    width: 13,
+    x: -76,
+    y: 22,
+  },
+  {
+    color: "#34d399",
+    delay: 0.74,
+    height: 16,
+    rotate: -10,
+    width: 7,
+    x: 58,
+    y: 18,
+  },
+  {
+    color: "#a78bfa",
+    delay: 0.84,
+    height: 13,
+    rotate: 52,
+    width: 13,
+    x: 108,
+    y: 4,
+  },
 ];
 
 const SPARKLES: SparkleSpec[] = [
@@ -195,6 +292,7 @@ export const FinishCelebrationModal = memo(function FinishCelebrationModal() {
   const { height, width } = useWindowDimensions();
   const isGameFinished = useGameStore((state) => state.isGameFinished);
   const initializeSession = useGameStore((state) => state.initializeSession);
+  const startSession = usePlayerStore((state) => state.startSession);
   const score = useScoreStore((state) => state.score);
   const [dismissed, setDismissed] = useState(false);
   const entrance = useSharedValue(0);
@@ -267,9 +365,13 @@ export const FinishCelebrationModal = memo(function FinishCelebrationModal() {
     ],
   }));
 
-  const handlePlayAgain = useCallback(() => {
-    void initializeSession();
-  }, [initializeSession]);
+  const handlePlayAgain = useCallback(async () => {
+    const session = await startSession();
+
+    if (session) {
+      await initializeSession();
+    }
+  }, [initializeSession, startSession]);
 
   if (!isGameFinished || dismissed) {
     return null;
@@ -279,8 +381,18 @@ export const FinishCelebrationModal = memo(function FinishCelebrationModal() {
     <View style={styles.overlay}>
       <View style={styles.backdrop} />
       <View pointerEvents="none" style={styles.effectsLayer}>
-        <PulseRing anchorX={anchor.x} anchorY={anchor.y} delay={0} progress={pulse} />
-        <PulseRing anchorX={anchor.x} anchorY={anchor.y} delay={0.38} progress={pulse} />
+        <PulseRing
+          anchorX={anchor.x}
+          anchorY={anchor.y}
+          delay={0}
+          progress={pulse}
+        />
+        <PulseRing
+          anchorX={anchor.x}
+          anchorY={anchor.y}
+          delay={0.38}
+          progress={pulse}
+        />
         <Animated.View
           style={[
             styles.centerGlow,
@@ -311,11 +423,7 @@ export const FinishCelebrationModal = memo(function FinishCelebrationModal() {
       <Animated.View
         accessibilityRole="alert"
         accessibilityViewIsModal
-        style={[
-          styles.card,
-          { width: cardWidth },
-          cardAnimatedStyle,
-        ]}
+        style={[styles.card, { width: cardWidth }, cardAnimatedStyle]}
       >
         <Animated.View style={[styles.medal, medalAnimatedStyle]}>
           <View style={styles.medalInner}>
@@ -327,12 +435,16 @@ export const FinishCelebrationModal = memo(function FinishCelebrationModal() {
           numberOfLines={1}
           style={[styles.title, titleAnimatedStyle]}
         >
-          You Finished!
+          Congratulations!
         </Animated.Text>
-        <Text style={styles.subtitle}>Final tile reached</Text>
+        <Text style={styles.subtitle}>{"You've Completed the Game!"}</Text>
         <View style={styles.scorePill}>
           <Text style={styles.scoreLabel}>Final Score</Text>
-          <Text adjustsFontSizeToFit numberOfLines={1} style={styles.scoreValue}>
+          <Text
+            adjustsFontSizeToFit
+            numberOfLines={1}
+            style={styles.scoreValue}
+          >
             {score}
           </Text>
         </View>

@@ -1,5 +1,11 @@
 import { create } from "zustand";
+import { saveGameSession, savePlayerProfile } from "../db/repository";
+import { diagError } from "../diagnostics/diagnosticLog";
 import type { CharacterId, GameSession, PlayerProfile } from "../types/game";
+
+function createSessionId() {
+  return `session-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
 
 interface PlayerState {
   player: PlayerProfile | null;
@@ -10,7 +16,7 @@ interface PlayerState {
   requestCharacterConfirmation: (characterId: CharacterId) => void;
   cancelCharacterConfirmation: () => void;
   confirmCharacter: () => CharacterId | null;
-  startSession: () => GameSession | null;
+  startSession: () => Promise<GameSession | null>;
   setCurrentTile: (tileId: number) => void;
   reset: () => void;
 }
@@ -81,7 +87,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
     return pendingCharacter;
   },
-  startSession: () => {
+  startSession: async () => {
     const { player } = get();
 
     const characterId = player?.confirmedCharacter ?? player?.selectedCharacter;
@@ -91,14 +97,27 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }
 
     const session: GameSession = {
-      id: `session-${Date.now()}`,
+      id: createSessionId(),
       playerId: player.id,
       characterId,
       tileId: 1,
       startedAt: Date.now(),
     };
+    const sessionPlayer: PlayerProfile = {
+      ...player,
+      selectedCharacter: characterId,
+      confirmedCharacter: characterId,
+    };
 
-    set({ currentSession: session });
+    set({ currentSession: session, player: sessionPlayer });
+
+    try {
+      await savePlayerProfile(sessionPlayer);
+      await saveGameSession(session, sessionPlayer.name);
+    } catch (error) {
+      diagError("db.startSession.persist.failed", error);
+    }
+
     return session;
   },
   setCurrentTile: (tileId) =>

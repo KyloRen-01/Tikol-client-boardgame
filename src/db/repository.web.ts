@@ -39,5 +39,8 @@ export async function listGameSessions() {
 }
 
 export async function listQuestionHistory(sessionId: string) {
-  return webDb.getSnapshot().history.filter((item) => item.sessionId === sessionId);
+  return webDb
+    .getSnapshot()
+    .history.filter((item) => item.sessionId === sessionId)
+    .sort((a, b) => a.answeredAt - b.answeredAt);
 }

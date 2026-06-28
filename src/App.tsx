@@ -10,7 +10,6 @@ import {
 import { BackButton } from "./components/BackButton";
 import { useDatabaseLifecycle } from "./db/useDatabaseLifecycle";
 import { DiagnosticErrorBoundary } from "./diagnostics/DiagnosticErrorBoundary";
-import { RenderProfiler } from "./diagnostics/RenderProfiler";
 import { diag, diagError } from "./diagnostics/diagnosticLog";
 import { useStartupDiagnostics } from "./diagnostics/useStartupDiagnostics";
 import { CharacterSelectionScreen } from "./screens/CharacterSelectionScreen";
@@ -28,9 +27,7 @@ const MIN_STARTUP_LOADING_MS = 1100;
 export default function App() {
   return (
     <DiagnosticErrorBoundary>
-      <RenderProfiler id="AppRoot">
-        <AppShell />
-      </RenderProfiler>
+      <AppShell />
     </DiagnosticErrorBoundary>
   );
 }
